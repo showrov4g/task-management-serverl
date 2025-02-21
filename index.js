@@ -1,22 +1,29 @@
 const express = require("express");
-const http = require ("http");
-const {Server} = require("socket.io")
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
-require('dotenv').config();
-const port = process.env.PORT || 5000
-const io = new Server(server,{
-  cors:{origin:'http://localhost:5173', methods: ['GET','POST','PUT','DELETE']}
-})
+require("dotenv").config();
+const port = process.env.PORT || 5000;
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
+});
 
 //middlewares
 app.use(cors());
 app.use(express.json());
 
-// database connection 
+// database connection
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const {
+  MongoClient,
+  ServerApiVersion,
+  ConnectionCheckOutStartedEvent,
+} = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_pass}@cluster0.23lvn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -25,7 +32,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -34,13 +41,50 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
     // ----------------
-    // my code here 
+    // my code here
+    const taskCollection = client.db("taskList").collection("task");
+    const userCollection = client.db("taskList").collection("users");
+    // add user data to the database
+    app.post("/user", async (req, res) => {
+      const { uid, email, displayName } = req.body;
+      const currentTime = new Date();
 
-
-
+      // check user data already have or not
+      const existingUser = await userCollection.findOne({ uid });
+      if (existingUser) {
+        await userCollection.updateOne(
+          { uid },
+          { $set: { lastLogin: currentTime } }
+        );
+        io.emit("userDataUpdate");
+       return res.sendStatus(200);
+      } else {
+        await userCollection.insertOne({
+          uid,
+          email,
+          displayName,
+          lastLogin: currentTime
+        });
+        io.emit("userDataSave");
+        return res.sendStatus(201);
+      }
+    });
+    // add task
+    app.post("/task", async (req, res) => {
+      const task = req.body;
+      await taskCollection.insertOne(task);
+      io.emit("taskUpdated");
+      res.sendStatus(201);
+    });
+    // gating task data
+    app.get("/task", async (req, res) => {
+      const result = await taskCollection.find().toArray();
+    });
 
     // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -48,15 +92,10 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("server is running");
+});
 
-
-
-
-
-app.get('/', (req,res)=>{
-  res.send("server is running")
-})
-
-server.listen(port,()=>{
-  console.log("server in running on port", port)
-})
+server.listen(port, () => {
+  console.log("server in running on port", port);
+});
