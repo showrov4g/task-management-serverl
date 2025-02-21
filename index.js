@@ -45,41 +45,15 @@ async function run() {
     const taskCollection = client.db("taskList").collection("task");
     const userCollection = client.db("taskList").collection("users");
     // add user data to the database
-    app.post("/user", async (req, res) => {
-      const { uid, email, displayName } = req.body;
-      const currentTime = new Date();
+  //  get task data 
+  app.get('/tasks', async(req,res)=>{
+    const {email} = req.query;
+    const result = await taskCollection.find({email}).toArray();
+    res.send(result)
+  }) 
+  
+    
 
-      // check user data already have or not
-      const existingUser = await userCollection.findOne({ uid });
-      if (existingUser) {
-        await userCollection.updateOne(
-          { uid },
-          { $set: { lastLogin: currentTime } }
-        );
-        io.emit("userDataUpdate");
-       return res.sendStatus(200);
-      } else {
-        await userCollection.insertOne({
-          uid,
-          email,
-          displayName,
-          lastLogin: currentTime
-        });
-        io.emit("userDataSave");
-        return res.sendStatus(201);
-      }
-    });
-    // add task
-    app.post("/task", async (req, res) => {
-      const task = req.body;
-      await taskCollection.insertOne(task);
-      io.emit("taskUpdated");
-      res.sendStatus(201);
-    });
-    // gating task data
-    app.get("/task", async (req, res) => {
-      const result = await taskCollection.find().toArray();
-    });
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
