@@ -46,6 +46,17 @@ async function run() {
     const taskCollection = client.db("taskList").collection("task");
     const userCollection = client.db("taskList").collection("users");
     // add user data to the database
+    // user data store api 
+    app.post('/users', async(req, res)=>{
+      const {userid, email, displayName} = req.body;
+      const user = {userid, email, displayName}
+      const existingUser = await userCollection.findOne({email})
+      if(!existingUser){
+        await userCollection.insertOne(user)
+      }
+      res.sendStatus(200);
+    })
+
   //  get task data 
   app.get('/tasks', async(req,res)=>{
     const {email} = req.query;
