@@ -65,11 +65,18 @@ async function run() {
   app.put("/tasks/:id", async(req,res)=>{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)}
-    await taskCollection.updateOne({$set: req.body})
+    await taskCollection.updateOne(query,{$set: req.body})
     io.emit("taskUpdated")
     res.sendStatus(200)
   })
-    
+    // delete task 
+  app.delete("/tasks/:id", async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    await taskCollection.deleteOne(query)
+    io.emit("taskUpdated")
+    res.sendStatus(200)
+  })
 
 
     // await client.db("admin").command({ ping: 1 });
