@@ -23,6 +23,7 @@ const {
   MongoClient,
   ServerApiVersion,
   ConnectionCheckOutStartedEvent,
+  ObjectId,
 } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.DB_pass}@cluster0.23lvn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -58,6 +59,15 @@ async function run() {
     await taskCollection.insertOne(task)
     io.emit("taskUpdate")
     res.sendStatus(201)
+  })
+
+  // update task 
+  app.put("/tasks/:id", async(req,res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)}
+    await taskCollection.updateOne({$set: req.body})
+    io.emit("taskUpdated")
+    res.sendStatus(200)
   })
     
 
