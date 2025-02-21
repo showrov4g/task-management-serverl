@@ -51,7 +51,14 @@ async function run() {
     const result = await taskCollection.find({email}).toArray();
     res.send(result)
   }) 
-  
+
+  // add task 
+  app.post('/tasks', async(req,res)=>{
+    const task = req.body;
+    await taskCollection.insertOne(task)
+    io.emit("taskUpdate")
+    res.sendStatus(201)
+  })
     
 
 
