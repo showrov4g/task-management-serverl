@@ -7,7 +7,10 @@ const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", methods: ["GET", "POST", "PUT", "DELETE"] },
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  },
 });
 
 app.use(cors());
@@ -29,20 +32,43 @@ connectDB();
 
 // Get Tasks for Logged-in User
 app.get("/tasks", async (req, res) => {
-  const { email } = req.query;
-  res.json(await tasks.find({ email }).toArray());
+  const userEmail = req.query.email;
+  console.log(userEmail)
+  res.json(await tasks.find({email: userEmail}).toArray());
 });
 
 // Add Task
+// app.post("/tasks", async (req, res) => {
+//   await tasks.insertOne(req.body);
+//   io.emit("taskUpdated");
+//   res.sendStatus(201);
+// });
+// app.post("/tasks", async (req, res) => {
+//   const { email, ...taskData } = req.body;
+//   await tasks.insertOne({
+//     ...taskData,
+//     email,
+//   });
+//   io.emit("taskUpdated");
+//   res.sendStatus(201);
+// });
+
 app.post("/tasks", async (req, res) => {
-  await tasks.insertOne(req.body);
+  const { title, description, category, email } = req.body;
+
+  await tasks.insertOne({ title, description, category, email }); // Email is saved with task
   io.emit("taskUpdated");
   res.sendStatus(201);
 });
 
+
+
 // Update Task
 app.put("/tasks/:id", async (req, res) => {
-  await tasks.updateOne({ _id: new ObjectId(req.params.id) }, { $set: req.body });
+  await tasks.updateOne(
+    { _id: new ObjectId(req.params.id) },
+    { $set: req.body }
+  );
   io.emit("taskUpdated");
   res.sendStatus(200);
 });
@@ -63,4 +89,3 @@ app.post("/users", async (req, res) => {
 });
 
 server.listen(5000, () => console.log("Server running on port 5000"));
- 
