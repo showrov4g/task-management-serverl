@@ -56,7 +56,7 @@ app.get("/tasks", async (req, res) => {
 app.post("/tasks", async (req, res) => {
   const { title, description, category, email } = req.body;
 
-  await tasks.insertOne({ title, description, category, email }); // Email is saved with task
+  await tasks.insertOne({ title, description, category, email });
   io.emit("taskUpdated");
   res.sendStatus(201);
 });
