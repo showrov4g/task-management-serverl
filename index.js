@@ -31,6 +31,19 @@ const connectDB = async () => {
 };
 connectDB();
 
+// add user data to database 
+app.post('/user', async(req,res)=>{
+  const { uid, email, displayName } = req.body;
+  // check user data have or not 
+  const existingUser = await users.findOne({ uid });
+  if(existingUser){
+    return
+  }
+  const newUser = { uid, email, displayName }
+  const result = await users.insertOne(newUser);
+  res.send(result)
+})
+
 // Get Tasks for Logged-in User
 app.get("/tasks", async (req, res) => {
   const userEmail = req.query.email;
@@ -38,21 +51,7 @@ app.get("/tasks", async (req, res) => {
   res.json(await tasks.find({email: userEmail}).toArray());
 });
 
-// Add Task
-// app.post("/tasks", async (req, res) => {
-//   await tasks.insertOne(req.body);
-//   io.emit("taskUpdated");
-//   res.sendStatus(201);
-// });
-// app.post("/tasks", async (req, res) => {
-//   const { email, ...taskData } = req.body;
-//   await tasks.insertOne({
-//     ...taskData,
-//     email,
-//   });
-//   io.emit("taskUpdated");
-//   res.sendStatus(201);
-// });
+
 
 app.post("/tasks", async (req, res) => {
   const { title, description, category, email } = req.body;
