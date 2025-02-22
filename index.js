@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+
 const express = require("express");
 const { MongoClient, ObjectId } = require("mongodb");
 const http = require("http");
@@ -90,4 +90,3 @@ app.post("/users", async (req, res) => {
 });
 
 server.listen(5000, () => console.log("Server running on port 5000"));
-exports.api = functions.https.onRequest(app);
