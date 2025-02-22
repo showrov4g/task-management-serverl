@@ -9,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://todo-task-4d852.web.app",
+    origin: ["http://localhost:5173", "https://todo-task-4d852.web.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
