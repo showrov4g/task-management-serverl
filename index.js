@@ -54,9 +54,9 @@ app.get("/tasks", async (req, res) => {
 
 
 app.post("/tasks", async (req, res) => {
-  const { title, description, category, email } = req.body;
+  const { title, description, category, email,timestamp } = req.body;
 
-  await tasks.insertOne({ title, description, category, email });
+  await tasks.insertOne({ title, description, category, email,timestamp });
   io.emit("taskUpdated");
   res.sendStatus(201);
 });
